@@ -26,7 +26,7 @@ class ContentGenerator:
             """
             
             response = self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",  # Changed from gpt-4 to gpt-3.5-turbo
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=300,
                 temperature=0.7

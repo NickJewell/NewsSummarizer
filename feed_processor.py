@@ -23,7 +23,7 @@ class FeedProcessor:
             return []
 
     def parse_feed(self, feed_url: str) -> List[Dict]:
-        """Parse RSS feed and return recent articles."""
+        """Parse RSS feed and return 5 most recent articles."""
         try:
             feed = feedparser.parse(feed_url)
             if feed.bozo:
@@ -41,8 +41,10 @@ class FeedProcessor:
                         'source': feed.feed.get('title', 'Unknown Source')
                     }
                     articles.append(article)
-                
-            return articles
+            
+            # Sort articles by date (newest first) and return only the latest 5
+            articles.sort(key=lambda x: x['published'], reverse=True)
+            return articles[:5]
         except Exception as e:
             logger.error(f"Error processing feed {feed_url}: {e}")
             return []
