@@ -5,6 +5,7 @@ from config import OPENAI_API_KEY, is_article_recent, NEWSLETTER_TEMPLATE
 from feed_processor import FeedProcessor
 from article_extractor import ArticleExtractor
 from content_generator import ContentGenerator
+from content_enhancer import ContentEnhancer
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,13 +74,39 @@ def main():
             content="\n".join(newsletter_content)
         )
         
-        # Save newsletter
+        # Save initial newsletter
         output_file = f"newsletter_{datetime.now().strftime('%Y%m%d')}.md"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(complete_newsletter)
         
         logger.info(f"Newsletter generated successfully: {output_file}")
         logger.info(f"Processed {processed_articles} articles")
+
+        # Enhanced newsletter generation
+        logger.info("Starting content enhancement phase...")
+        content_enhancer = ContentEnhancer(OPENAI_API_KEY)
+        
+        # Read the generated newsletter
+        newsletter_content = content_enhancer.read_newsletter(output_file)
+        if not newsletter_content:
+            logger.error("Could not read the generated newsletter")
+            return
+
+        # Extract and select top stories
+        articles = content_enhancer.extract_articles(newsletter_content)
+        top_articles = content_enhancer.select_top_stories(articles)
+        
+        # Enhance each selected article
+        enhanced_articles = []
+        for article in top_articles:
+            enhanced_content = content_enhancer.enhance_article(article)
+            enhanced_articles.append(enhanced_content)
+        
+        # Save enhanced newsletter
+        enhanced_output_file = f"newsletter_edited_{datetime.now().strftime('%Y%m%d')}.md"
+        content_enhancer.save_enhanced_newsletter(enhanced_articles, enhanced_output_file)
+        
+        logger.info("Content enhancement phase completed successfully")
         
     except Exception as e:
         logger.error(f"Error in main process: {e}")
