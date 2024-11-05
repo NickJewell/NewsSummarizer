@@ -6,7 +6,9 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ContentEnhancer:
+
     def __init__(self, api_key: str):
         """Initialize OpenAI client."""
         self.client = OpenAI(api_key=api_key)
@@ -39,7 +41,10 @@ class ContentEnhancer:
     def select_top_stories(self, articles: list) -> list:
         """Use GPT-4 to analyze and select top 5 stories."""
         try:
-            articles_text = "\n\n".join([f"Title: {a['title']}\nContent: {a['content']}" for a in articles])
+            articles_text = "\n\n".join([
+                f"Title: {a['title']}\nContent: {a['content']}"
+                for a in articles
+            ])
             prompt = f"""
             Analyze these news articles and select the top 5 most significant stories based on:
             1. Impact on the technology industry
@@ -53,15 +58,21 @@ class ContentEnhancer:
             Return only the titles of the top 5 articles in order of significance, formatted as a JSON array.
             """
 
-            response = self.client.chat.completions.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=500,
-                temperature=0.7
-            )
+            response = self.client.chat.completions.create(model="gpt-4",
+                                                           messages=[{
+                                                               "role":
+                                                               "user",
+                                                               "content":
+                                                               prompt
+                                                           }],
+                                                           max_tokens=500,
+                                                           temperature=0.7)
 
             top_titles = eval(response.choices[0].message.content.strip())
-            return [article for article in articles if article['title'] in top_titles]
+            return [
+                article for article in articles
+                if article['title'] in top_titles
+            ]
         except Exception as e:
             logger.error(f"Error selecting top stories: {e}")
             return []
@@ -70,7 +81,7 @@ class ContentEnhancer:
         """Create an enhanced, journalistic version of the article."""
         try:
             prompt = f"""
-            Rewrite this tech news article in a more sophisticated, journalistic style.
+            Rewrite this tech news article in a more sophisticated, journalistic style consisting of absolutely no more than two solid paragraphs. 
             Focus on:
             1. Adding context and industry implications
             2. Professional tone and engaging narrative
@@ -83,19 +94,23 @@ class ContentEnhancer:
             Provide the enhanced version maintaining the Markdown format with the original title.
             """
 
-            response = self.client.chat.completions.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1000,
-                temperature=0.7
-            )
+            response = self.client.chat.completions.create(model="gpt-4",
+                                                           messages=[{
+                                                               "role":
+                                                               "user",
+                                                               "content":
+                                                               prompt
+                                                           }],
+                                                           max_tokens=1000,
+                                                           temperature=0.7)
 
             return response.choices[0].message.content.strip()
         except Exception as e:
             logger.error(f"Error enhancing article: {e}")
             return article['content']
 
-    def save_enhanced_newsletter(self, enhanced_articles: list, output_path: str):
+    def save_enhanced_newsletter(self, enhanced_articles: list,
+                                 output_path: str):
         """Save the enhanced newsletter to file."""
         try:
             date_str = datetime.now().strftime('%Y-%m-%d')
@@ -104,11 +119,12 @@ class ContentEnhancer:
 Welcome to today's carefully curated and enhanced tech news digest. These are the most significant stories of the day:
 
 """
-            content = header + "\n\n".join(enhanced_articles) + "\n\n*Enhanced with AI assistance*"
-            
+            content = header + "\n\n".join(
+                enhanced_articles) + "\n\n*Enhanced with AI assistance*"
+
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(content)
-            
+
             logger.info(f"Enhanced newsletter saved to {output_path}")
         except Exception as e:
             logger.error(f"Error saving enhanced newsletter: {e}")
